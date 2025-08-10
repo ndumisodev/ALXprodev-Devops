@@ -1,9 +1,14 @@
 #!/bin/bash
-# Extracts Pikachu stats from data.json
 
-NAME=$(jq -r '.name' data.json)
-TYPE=$(jq -r '.types[0].type.name' data.json | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
-WEIGHT=$(jq -r '.weight/10' data.json)  # Convert from hectograms to kg
-HEIGHT=$(jq -r '.height/10' data.json)  # Convert from decimeters to meters
+JSON_FILE="data.json"
 
-echo "${NAME} is of type ${TYPE}, weighs ${WEIGHT}kg, and is ${HEIGHT}m tall."
+NAME=$(jq -r '.name' "$JSON_FILE" | sed 's/.*/\u&/')  # Capitalize first letter
+HEIGHT=$(jq '.height' "$JSON_FILE")
+WEIGHT=$(jq '.weight' "$JSON_FILE")
+TYPE=$(jq -r '.types[0].type.name' "$JSON_FILE" | sed 's/.*/\u&/')
+
+# Convert decimetres to metres, hectograms to kg
+HEIGHT_M=$(awk -v h="$HEIGHT" 'BEGIN {print h/10}')
+WEIGHT_KG=$(awk -v w="$WEIGHT" 'BEGIN {print w/10}')
+
+echo "$NAME is of type $TYPE, weighs ${WEIGHT_KG}kg, and is ${HEIGHT_M}m tall."
