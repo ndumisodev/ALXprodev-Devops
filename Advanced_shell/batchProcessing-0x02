@@ -6,12 +6,23 @@ mkdir -p "$DIR"
 
 for POKE in "${POKEMONS[@]}"; do
     echo "Fetching data for $POKE..."
-    HTTP_STATUS=$(curl -s -o "$DIR/$POKE.json" -w "%{http_code}" "https://pokeapi.co/api/v2/pokemon/$POKE")
+    ATTEMPT=1
+    SUCCESS=false
 
-    if [ "$HTTP_STATUS" -eq 200 ]; then
-        echo "Saved data to $DIR/$POKE.json ✅"
-    else
-        echo "[$(date)] Failed to fetch $POKE. Status: $HTTP_STATUS" >> errors.txt
+    while [ $ATTEMPT -le 3 ]; do
+        HTTP_STATUS=$(curl -s -o "$DIR/$POKE.json" -w "%{http_code}" "https://pokeapi.co/api/v2/pokemon/$POKE")
+        if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "Saved data to $DIR/$POKE.json ✅"
+            SUCCESS=true
+            break
+        else
+            echo "Attempt $ATTEMPT for $POKE failed (status $HTTP_STATUS)"
+            sleep 2
+        fi
+        ATTEMPT=$((ATTEMPT + 1))
+    done
+
+    if [ "$SUCCESS" = false ]; then
+        echo "[$(date)] Failed to fetch $POKE after 3 attempts" >> errors.txt
     fi
-    sleep 2  # Delay to prevent rate-limiting
 done
