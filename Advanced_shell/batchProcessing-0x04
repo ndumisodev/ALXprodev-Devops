@@ -1,0 +1,24 @@
+#!/bin/bash
+# Parallel Pokémon data fetching
+
+POKEMONS=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+DATA_DIR="pokemon_data"
+MAX_PARALLEL=3  # Number of concurrent processes
+DELAY=1
+
+mkdir -p "$DATA_DIR"
+
+fetch_pokemon() {
+    local pokemon=$1
+    curl -s "https://pokeapi.co/api/v2/pokemon/$pokemon" -o "$DATA_DIR/$pokemon.json" && \
+    echo "Saved $pokemon.json" || \
+    echo "Failed $pokemon" >&2
+}
+
+export -f fetch_pokemon
+export DATA_DIR
+
+printf "%s\n" "${POKEMONS[@]}" | xargs -P $MAX_PARALLEL -I {} bash -c 'fetch_pokemon "$@"' _ {}
+
+wait  # Ensure all background processes complete
+echo "All downloads completed"
