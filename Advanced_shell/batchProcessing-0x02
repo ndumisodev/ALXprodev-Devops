@@ -12,7 +12,7 @@ for POKE in "${POKEMONS[@]}"; do
     while [ $ATTEMPT -le 3 ]; do
         HTTP_STATUS=$(curl -s -o "$DIR/$POKE.json" -w "%{http_code}" "https://pokeapi.co/api/v2/pokemon/$POKE")
         if [ "$HTTP_STATUS" -eq 200 ]; then
-            echo "Saved data to $DIR/$POKE.json ✅"
+            echo "Saved data to $DIR/$POKE.json "
             SUCCESS=true
             break
         else
