@@ -1,23 +1,25 @@
 #!/bin/bash
 
-POKEMONS=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
-DIR="pokemon_data"
-mkdir -p "$DIR"
+# List of Pokémon
+POKEMONS=("Bulbasaur" "Ivysaur" "Venusaur" "Charmander" "Charmeleon")
 
+# Fetch function
 fetch_pokemon() {
-    local POKE=$1
-    echo "Fetching $POKE..."
-    HTTP_STATUS=$(curl -s -o "$DIR/$POKE.json" -w "%{http_code}" "https://pokeapi.co/api/v2/pokemon/$POKE")
-    if [ "$HTTP_STATUS" -eq 200 ]; then
-        echo "Saved data to $DIR/$POKE.json "
-    else
-        echo "[$(date)] Failed to fetch $POKE. Status: $HTTP_STATUS" >> errors.txt
-    fi
+    name=$1
+    curl -s "https://pokeapi.co/api/v2/pokemon/${name,,}" \
+        | jq '.name, .id, .types[].type.name'
 }
 
-for POKE in "${POKEMONS[@]}"; do
-    fetch_pokemon "$POKE" &
+# Start background jobs
+for pokemon in "${POKEMONS[@]}"; do
+    fetch_pokemon "$pokemon" &
 done
 
-wait  # Wait for all background processes to finish
-echo "All Pokémon fetched."
+# Show running jobs
+jobs
+
+# Wait for all jobs to finish
+wait
+
+# (Optional) Kill any stray jobs (in case something hangs)
+jobs -p | xargs kill 2>/dev/null
